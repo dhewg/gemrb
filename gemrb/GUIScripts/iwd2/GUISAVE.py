@@ -138,6 +138,8 @@ def ScrollBarPress():
 	return
 
 def AbortedSaveGame():
+	global ConfirmWindow
+
 	if ConfirmWindow:
 		ConfirmWindow.Unload ()
 	SaveWindow.SetVisible (WINDOW_VISIBLE)
@@ -227,7 +229,7 @@ def EditChange():
 	return
 
 def DeleteGameConfirm():
-	global Games
+	global Games, ConfirmWindow
 
 	TopIndex = GemRB.GetVar ("TopIndex")
 	Pos = TopIndex +GemRB.GetVar ("LoadIdx")
@@ -243,6 +245,8 @@ def DeleteGameConfirm():
 	return
 
 def DeleteGameCancel():
+	global ConfirmWindow
+
 	if ConfirmWindow:
 		ConfirmWindow.Unload ()
 	SaveWindow.SetVisible (WINDOW_VISIBLE)
