@@ -69,7 +69,7 @@ void GlobalTimer::Freeze()
 	if (!game) {
 		return;
 	}
-	game->RealTime+=advance;
+	game->RealTime++;
 
 	ieDword count = advance/interval;
 	// pst/bg2 do this, if you fix it for another game, wrap it in a check
@@ -192,7 +192,7 @@ void GlobalTimer::Update()
 	}
 	//this measures time spent in the game (including pauses)
 	if (thisTime) {
-		game->RealTime+=advance;
+		game->RealTime++;
 	}
 end:
 	startTime = thisTime;
