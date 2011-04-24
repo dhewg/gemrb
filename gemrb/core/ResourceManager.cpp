@@ -108,6 +108,8 @@ DataStream* ResourceManager::GetResource(const char* ResRef, SClass_ID type, boo
 {
 	if (ResRef[0] == '\0')
 		return NULL;
+	if (!strncmp(ResRef, "bag", 3))
+		silent = true;
 	if (!silent) {
 		printMessage( "ResourceManager", "Searching for ", WHITE );
 		printf( "%s%s...", ResRef, core->TypeExt( type ) );
