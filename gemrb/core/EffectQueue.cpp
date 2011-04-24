@@ -485,6 +485,7 @@ int EffectQueue::AddEffect(Effect* fx, Scriptable* self, Actor* pretarget, const
 	int flg;
 	ieDword spec = 0;
 	Actor *st = (self && (self->Type==ST_ACTOR)) ?(Actor *) self:NULL;
+	Effect* new_fx;
 
 	switch (fx->Target) {
 	case FX_TARGET_ORIGINAL:
@@ -509,6 +510,7 @@ int EffectQueue::AddEffect(Effect* fx, Scriptable* self, Actor* pretarget, const
 		break;
 
 	case FX_TARGET_ALL_BUT_SELF:
+		new_fx = new Effect;
 		map=self->GetCurrentArea();
 		i= map->GetActorCount(true);
 		while(i--) {
@@ -517,13 +519,15 @@ int EffectQueue::AddEffect(Effect* fx, Scriptable* self, Actor* pretarget, const
 			if( st==actor) {
 				continue;
 			}
-			fx->SetPosition(actor->Pos);
+			memcpy( new_fx, fx, sizeof( Effect ) );
+			new_fx->SetPosition(actor->Pos);
 
-			flg = ApplyEffect( actor, fx, 1 );
-			if( fx->TimingMode != FX_DURATION_JUST_EXPIRED) {
-				actor->fxqueue.AddEffect( fx, flg==FX_INSERT );
+			flg = ApplyEffect( actor, new_fx, 1 );
+			if( new_fx->TimingMode != FX_DURATION_JUST_EXPIRED) {
+				actor->fxqueue.AddEffect( new_fx, flg==FX_INSERT );
 			}
 		}
+		delete new_fx;
 		flg = FX_APPLIED;
 		break;
 
@@ -534,6 +538,7 @@ int EffectQueue::AddEffect(Effect* fx, Scriptable* self, Actor* pretarget, const
 		map = self->GetCurrentArea();
 		spec = st->GetStat(IE_SPECIFIC);
 
+		new_fx = new Effect;
 		//GetActorCount(false) returns all nonparty critters
 		i = map->GetActorCount(false);
 		while(i--) {
@@ -541,13 +546,15 @@ int EffectQueue::AddEffect(Effect* fx, Scriptable* self, Actor* pretarget, const
 			if( actor->GetStat(IE_SPECIFIC)!=spec) {
 				continue;
 			}
-			fx->SetPosition(actor->Pos);
+			memcpy( new_fx, fx, sizeof( Effect ) );
+			new_fx->SetPosition(actor->Pos);
 
-			flg = ApplyEffect( actor, fx, 1 );
-			if( fx->TimingMode != FX_DURATION_JUST_EXPIRED) {
-				actor->fxqueue.AddEffect( fx, flg==FX_INSERT );
+			flg = ApplyEffect( actor, new_fx, 1 );
+			if( new_fx->TimingMode != FX_DURATION_JUST_EXPIRED) {
+				actor->fxqueue.AddEffect( new_fx, flg==FX_INSERT );
 			}
 		}
+		delete new_fx;
 		flg = FX_APPLIED;
 		break;
 	case FX_TARGET_OTHER_SIDE:
@@ -557,6 +564,7 @@ int EffectQueue::AddEffect(Effect* fx, Scriptable* self, Actor* pretarget, const
 		map = self->GetCurrentArea();
 		spec = pretarget->GetStat(IE_SPECIFIC);
 
+		new_fx = new Effect;
 		//GetActorCount(false) returns all nonparty critters
 		i = map->GetActorCount(false);
 		while(i--) {
@@ -564,14 +572,16 @@ int EffectQueue::AddEffect(Effect* fx, Scriptable* self, Actor* pretarget, const
 			if( actor->GetStat(IE_SPECIFIC)!=spec) {
 				continue;
 			}
-			fx->SetPosition(actor->Pos);
+			memcpy( new_fx, fx, sizeof( Effect ) );
+			new_fx->SetPosition(actor->Pos);
 
-			flg = ApplyEffect( actor, fx, 1 );
+			flg = ApplyEffect( actor, new_fx, 1 );
 			//GetActorCount can now return all nonparty critters
-			if( fx->TimingMode != FX_DURATION_JUST_EXPIRED) {
-				actor->fxqueue.AddEffect( fx, flg==FX_INSERT );
+			if( new_fx->TimingMode != FX_DURATION_JUST_EXPIRED) {
+				actor->fxqueue.AddEffect( new_fx, flg==FX_INSERT );
 			}
 		}
+		delete new_fx;
 		flg = FX_APPLIED;
 		break;
 	case FX_TARGET_PRESET:
@@ -587,48 +597,57 @@ int EffectQueue::AddEffect(Effect* fx, Scriptable* self, Actor* pretarget, const
 
 	case FX_TARGET_PARTY:
 all_party:
+		new_fx = new Effect;
 		game = core->GetGame();
 		i = game->GetPartySize(false);
 		while(i--) {
 			Actor* actor = game->GetPC( i, false );
-			fx->SetPosition(actor->Pos);
+			memcpy( new_fx, fx, sizeof( Effect ) );
+			new_fx->SetPosition(actor->Pos);
 
-			flg = ApplyEffect( actor, fx, 1 );
-			if( fx->TimingMode != FX_DURATION_JUST_EXPIRED) {
-				actor->fxqueue.AddEffect( fx, flg==FX_INSERT );
+			flg = ApplyEffect( actor, new_fx, 1 );
+			if( new_fx->TimingMode != FX_DURATION_JUST_EXPIRED) {
+				actor->fxqueue.AddEffect( new_fx, flg==FX_INSERT );
 			}
 		}
+		delete new_fx;
 		flg = FX_APPLIED;
 		break;
 
 	case FX_TARGET_ALL:
+		new_fx = new Effect;
 		map = self->GetCurrentArea();
 		i = map->GetActorCount(true);
 		while(i--) {
 			Actor* actor = map->GetActor( i, true );
-			fx->SetPosition(actor->Pos);
+			memcpy( new_fx, fx, sizeof( Effect ) );
+			new_fx->SetPosition(actor->Pos);
 
-			flg = ApplyEffect( actor, fx, 1 );
-			if( fx->TimingMode != FX_DURATION_JUST_EXPIRED) {
-				actor->fxqueue.AddEffect( fx, flg==FX_INSERT );
+			flg = ApplyEffect( actor, new_fx, 1 );
+			if( new_fx->TimingMode != FX_DURATION_JUST_EXPIRED) {
+				actor->fxqueue.AddEffect( new_fx, flg==FX_INSERT );
 			}
 		}
+		delete new_fx;
 		flg = FX_APPLIED;
 		break;
 
 	case FX_TARGET_ALL_BUT_PARTY:
+		new_fx = new Effect;
 		map = self->GetCurrentArea();
 		i = map->GetActorCount(false);
 		while(i--) {
 			Actor* actor = map->GetActor( i, false );
-			fx->SetPosition(actor->Pos);
+			memcpy( new_fx, fx, sizeof( Effect ) );
+			new_fx->SetPosition(actor->Pos);
 
-			flg = ApplyEffect( actor, fx, 1 );
+			flg = ApplyEffect( actor, new_fx, 1 );
 			//GetActorCount can now return all nonparty critters
-			if( fx->TimingMode != FX_DURATION_JUST_EXPIRED) {
-				actor->fxqueue.AddEffect( fx, flg==FX_INSERT );
+			if( new_fx->TimingMode != FX_DURATION_JUST_EXPIRED) {
+				actor->fxqueue.AddEffect( new_fx, flg==FX_INSERT );
 			}
 		}
+		delete new_fx;
 		flg = FX_APPLIED;
 		break;
 
