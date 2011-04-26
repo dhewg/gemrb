@@ -52,15 +52,15 @@ private:
 	ieDword fentcount, tentcount;
 	DataStream* stream;
 public:
-	BIFImporter(void);
-	~BIFImporter(void);
+	BIFImporter();
+	~BIFImporter();
 	int DecompressSaveGame(DataStream *compressed);
 	int AddToSaveGame(DataStream *str, DataStream *uncompressed);
 	int OpenArchive(const char* filename);
 	int CreateArchive(DataStream *compressed);
 	DataStream* GetStream(unsigned long Resource, unsigned long Type);
 private:
-	void ReadBIF(void);
+	void ReadBIF();
 };
 
 #endif

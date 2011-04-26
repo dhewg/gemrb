@@ -28,24 +28,16 @@
 #include "System/SlicedStream.h"
 #include "System/FileStream.h"
 
-BIFImporter::BIFImporter(void)
+BIFImporter::BIFImporter()
+	: fentries(NULL), tentries(NULL), stream(NULL)
 {
-	stream = NULL;
-	fentries = NULL;
-	tentries = NULL;
 }
 
-BIFImporter::~BIFImporter(void)
+BIFImporter::~BIFImporter()
 {
-	if (stream) {
-		delete( stream );
-	}
-	if (fentries) {
-		delete[] fentries;
-	}
-	if (tentries) {
-		delete[] tentries;
-	}
+	delete stream;
+	delete[] fentries;
+	delete[] tentries;
 }
 
 int BIFImporter::DecompressSaveGame(DataStream *compressed)
@@ -87,10 +79,9 @@ int BIFImporter::DecompressSaveGame(DataStream *compressed)
 //this one can create .sav files only
 int BIFImporter::CreateArchive(DataStream *compressed)
 {
-	if (stream) {
-		delete( stream );
-		stream = NULL;
-	}
+	delete stream;
+	stream = NULL;
+
 	if (!compressed) {
 		return GEM_ERROR;
 	}
@@ -131,10 +122,9 @@ int BIFImporter::AddToSaveGame(DataStream *str, DataStream *uncompressed)
 
 int BIFImporter::OpenArchive(const char* filename)
 {
-	if (stream) {
-		delete( stream );
-		stream = NULL;
-	}
+	delete stream;
+	stream = NULL;
+
 	FileStream* file = FileStream::OpenFile(filename);
 	if( !file) {
 		return GEM_ERROR;
@@ -172,7 +162,7 @@ int BIFImporter::OpenArchive(const char* filename)
 		print( "Decompressing\n" );
 		stream = CacheCompressedStream(compressed, fname, complen);
 		free( fname );
-		delete( compressed );
+		delete compressed;
 		if (!stream)
 			return GEM_ERROR;
 		stream->Read( Signature, 8 );
@@ -188,7 +178,7 @@ int BIFImporter::OpenArchive(const char* filename)
 		PathJoin( path, core->CachePath, compressed->filename, NULL );
 		if (file_exists(path)) {
 			//print("Found in Cache\n");
-			delete( compressed );
+			delete compressed;
 			stream = FileStream::OpenFile(path);
 			if (!stream)
 				return GEM_ERROR;
@@ -236,7 +226,7 @@ int BIFImporter::OpenArchive(const char* filename)
 			}
 		}
 		print( "\n" );
-		delete( compressed );
+		delete compressed;
 		stream = FileStream::OpenFile(path);
 		if (!stream)
 			return GEM_ERROR;
@@ -247,7 +237,7 @@ int BIFImporter::OpenArchive(const char* filename)
 			return GEM_ERROR;
 		return GEM_OK;
 	}
-	delete (compressed);
+	delete compressed;
 	return GEM_ERROR;
 }
 
@@ -273,7 +263,7 @@ DataStream* BIFImporter::GetStream(unsigned long Resource, unsigned long Type)
 	return NULL;
 }
 
-void BIFImporter::ReadBIF(void)
+void BIFImporter::ReadBIF()
 {
 	ieDword foffset;
 	stream->ReadDword( &fentcount );
@@ -283,14 +273,12 @@ void BIFImporter::ReadBIF(void)
 	fentries = new FileEntry[fentcount];
 	tentries = new TileEntry[tentcount];
 	if (!fentries || !tentries) {
-		if (fentries) {
-			delete fentries;
-			fentries = NULL;
-		}
-		if (tentries) {
-			delete tentries;
-			tentries = NULL;
-		}
+		delete[] fentries;
+		fentries = NULL;
+
+		delete[] tentries;
+		tentries = NULL;
+
 		return;
 	}
 	unsigned int i;
