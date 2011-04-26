@@ -23,20 +23,13 @@
 
 #include "ArchiveImporter.h"
 #include "ResourceSource.h"
-
-#include "Dictionary.h"
+#include "HashMap.h"
 
 #include <vector>
 
 class DataStream;
 class Resource;
 class ResourceDesc;
-
-struct RESEntry {
-	ieResRef ResRef;
-	ieWord   Type;
-	ieDword  ResLocator;
-};
 
 struct BIFEntry {
 	char* name;
@@ -56,7 +49,7 @@ struct KEYCache {
 class KEYImporter : public ResourceSource {
 private:
 	std::vector< BIFEntry> biffiles;
-	Dictionary resources;
+	HashMap<ieDword> resources;
 
 	KEYCache lastSeenCache;
 

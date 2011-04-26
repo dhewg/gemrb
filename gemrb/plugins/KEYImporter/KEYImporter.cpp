@@ -198,14 +198,21 @@ bool KEYImporter::Open(const char *resfile, const char *desc)
 		biffiles.push_back( be );
 	}
 	f->Seek( ResOffset, GEM_STREAM_START );
-	resources.InitHashTable( ResCount < 17 ? 17 : ResCount );
+
+	ieResRef ResRef;
+	ieWord Type;
+	ieDword ResLocator;
+
 	for (i = 0; i < ResCount; i++) {
-		RESEntry re;
-		f->ReadResRef( re.ResRef );
-		f->ReadWord( &re.Type );
-		f->ReadDword( &re.ResLocator );
-		resources.SetAt( re.ResRef, re.Type, re.ResLocator );
+		f->ReadResRef(ResRef);
+		f->ReadWord(&Type);
+		f->ReadDword(&ResLocator);
+
+		// seems to be always the last entry?
+		if (ResRef[0] != 0)
+			resources.set(ResRef, ResLocator, Type);
 	}
+
 	printMessage( "KEYImporter", "Resources Loaded...", WHITE );
 	printStatus( "OK", LIGHT_GREEN );
 	delete( f );
@@ -214,8 +221,7 @@ bool KEYImporter::Open(const char *resfile, const char *desc)
 
 bool KEYImporter::HasResource(const char* resname, SClass_ID type)
 {
-	unsigned int ResLocator;
-	return resources.Lookup( resname, type, ResLocator );
+	return resources.has(resname, type);
 }
 
 bool KEYImporter::HasResource(const char* resname, const ResourceDesc &type)
@@ -237,40 +243,42 @@ static void FindBIFOnCD(BIFEntry *entry)
 
 DataStream* KEYImporter::GetStream(const char *resname, ieWord type)
 {
-	unsigned int ResLocator;
-
 	if (type == 0)
 		return NULL;
-	if (resources.Lookup( resname, type, ResLocator )) {
-		unsigned int bifnum = ( ResLocator & 0xFFF00000 ) >> 20;
 
-		if (core->GameOnCD && (biffiles[bifnum].cd != 0))
-			FindBIFOnCD(&biffiles[bifnum]);
-		if (!biffiles[bifnum].found) {
-			print( "Cannot find %s... Resource unavailable.\n",
-					biffiles[bifnum].name );
+	const ieDword *ResLocator = resources.get(resname, type);
+	if (!ResLocator)
+		return 0;
+
+	unsigned int bifnum = ( *ResLocator & 0xFFF00000 ) >> 20;
+
+	if (core->GameOnCD && (biffiles[bifnum].cd != 0))
+		FindBIFOnCD(&biffiles[bifnum]);
+	if (!biffiles[bifnum].found) {
+		print( "Cannot find %s... Resource unavailable.\n",
+				biffiles[bifnum].name );
+		return NULL;
+	}
+
+	// simple one-BIF cache to avoid opening the same BIF repeatedly
+	if (lastSeenCache.bifnum != bifnum) {
+		PluginHolder<ArchiveImporter> ai(IE_BIF_CLASS_ID);
+		if (ai->OpenArchive( biffiles[bifnum].path ) == GEM_ERROR) {
+			print("Cannot open archive %s\n", biffiles[bifnum].path );
 			return NULL;
 		}
-
-		// simple one-BIF cache to avoid opening the same BIF repeatedly
-		if (lastSeenCache.bifnum != bifnum) {
-			PluginHolder<ArchiveImporter> ai(IE_BIF_CLASS_ID);
-			if (ai->OpenArchive( biffiles[bifnum].path ) == GEM_ERROR) {
-				print("Cannot open archive %s\n", biffiles[bifnum].path );
-				return NULL;
-			}
-			lastSeenCache.bifnum = bifnum;
-			lastSeenCache.plugin = ai;
-		}
-
-		DataStream* ret = lastSeenCache.plugin->GetStream( ResLocator, type );
-		if (ret) {
-			strnlwrcpy( ret->filename, resname, 8 );
-			strcat( ret->filename, "." );
-			strcat( ret->filename, core->TypeExt( type ) );
-			return ret;
-		}
+		lastSeenCache.bifnum = bifnum;
+		lastSeenCache.plugin = ai;
 	}
+
+	DataStream* ret = lastSeenCache.plugin->GetStream( *ResLocator, type );
+	if (ret) {
+		strnlwrcpy( ret->filename, resname, 8 );
+		strcat( ret->filename, "." );
+		strcat( ret->filename, core->TypeExt( type ) );
+		return ret;
+	}
+
 	return NULL;
 }
 
