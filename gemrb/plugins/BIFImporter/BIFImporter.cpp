@@ -28,16 +28,24 @@
 #include "System/SlicedStream.h"
 #include "System/FileStream.h"
 
+BIFImporter::FileEntry::FileEntry(ieDword Offset, ieDword Size)
+	: offset(Offset), size(Size)
+{
+}
+
+BIFImporter::TileEntry::TileEntry(ieDword Offset, ieDword Count, ieDword Size)
+	: offset(Offset), count(Count), size(Size)
+{
+}
+
 BIFImporter::BIFImporter()
-	: fentries(NULL), tentries(NULL), stream(NULL)
+	: stream(NULL)
 {
 }
 
 BIFImporter::~BIFImporter()
 {
 	delete stream;
-	delete[] fentries;
-	delete[] tentries;
 }
 
 int BIFImporter::DecompressSaveGame(DataStream *compressed)
@@ -244,59 +252,59 @@ int BIFImporter::OpenArchive(const char* filename)
 DataStream* BIFImporter::GetStream(unsigned long Resource, unsigned long Type)
 {
 	if (Type == IE_TIS_CLASS_ID) {
-		unsigned int srcResLoc = Resource & 0xFC000;
-		for (unsigned int i = 0; i < tentcount; i++) {
-			if (( tentries[i].resLocator & 0xFC000 ) == srcResLoc) {
-				return SliceStream( stream, tentries[i].dataOffset,
-							tentries[i].tileSize * tentries[i].tilesCount );
-			}
-		}
+		TileEntryMap::const_iterator it = tiles.find(Resource & 0xfc000);
+
+		if (it == tiles.end())
+			return 0;
+
+		const TileEntry &entry = it->second;
+
+		return SliceStream(stream, entry.offset, entry.size * entry.count);
 	} else {
-		ieDword srcResLoc = Resource & 0x3FFF;
-		for (ieDword i = 0; i < fentcount; i++) {
-			if (( fentries[i].resLocator & 0x3FFF ) == srcResLoc) {
-				return SliceStream( stream, fentries[i].dataOffset,
-							fentries[i].fileSize );
-			}
-		}
+		FileEntryMap::const_iterator it = files.find(Resource & 0x3fff);
+
+		if (it == files.end())
+			return 0;
+
+		const FileEntry &entry = it->second;
+
+		return SliceStream(stream, entry.offset, entry.size);
 	}
 	return NULL;
 }
 
 void BIFImporter::ReadBIF()
 {
-	ieDword foffset;
-	stream->ReadDword( &fentcount );
-	stream->ReadDword( &tentcount );
-	stream->ReadDword( &foffset );
-	stream->Seek( foffset, GEM_STREAM_START );
-	fentries = new FileEntry[fentcount];
-	tentries = new TileEntry[tentcount];
-	if (!fentries || !tentries) {
-		delete[] fentries;
-		fentries = NULL;
+	ieDword fileCount, tileCount, offset;
 
-		delete[] tentries;
-		tentries = NULL;
+	stream->ReadDword(&fileCount);
+	stream->ReadDword(&tileCount);
+	stream->ReadDword(&offset);
 
-		return;
+	stream->Seek(offset, GEM_STREAM_START);
+
+	ieDword locator, count, size;
+	ieWord dummy;
+
+	for (ieDword i = 0; i < fileCount; ++i) {
+		stream->ReadDword(&locator);
+		stream->ReadDword(&offset);
+		stream->ReadDword(&size);
+		stream->ReadWord(&dummy); // type
+		stream->ReadWord(&dummy); // unknown
+
+		files.insert(FileEntryPair(locator & 0x3fff, FileEntry(offset, size)));
 	}
-	unsigned int i;
 
-	for (i=0;i<fentcount;i++) {
-		stream->ReadDword( &fentries[i].resLocator);
-		stream->ReadDword( &fentries[i].dataOffset);
-		stream->ReadDword( &fentries[i].fileSize);
-		stream->ReadWord( &fentries[i].type);
-		stream->ReadWord( &fentries[i].u1);
-	}
-	for (i=0;i<tentcount;i++) {
-		stream->ReadDword( &tentries[i].resLocator);
-		stream->ReadDword( &tentries[i].dataOffset);
-		stream->ReadDword( &tentries[i].tilesCount);
-		stream->ReadDword( &tentries[i].tileSize);
-		stream->ReadWord( &tentries[i].type);
-		stream->ReadWord( &tentries[i].u1);
+	for (ieDword i = 0; i < tileCount; ++i) {
+		stream->ReadDword(&locator);
+		stream->ReadDword(&offset);
+		stream->ReadDword(&count);
+		stream->ReadDword(&size);
+		stream->ReadWord(&dummy); // type
+		stream->ReadWord(&dummy); // unknown
+
+		tiles.insert(TileEntryPair(locator & 0xfc000, TileEntry(offset, count, size)));
 	}
 }
 

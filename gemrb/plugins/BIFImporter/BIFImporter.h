@@ -21,36 +21,44 @@
 #ifndef BIFIMPORTER_H
 #define BIFIMPORTER_H
 
+#include <set>
+#include <map>
+
 #include "ArchiveImporter.h"
 
 #include "globals.h"
 
 #include "System/DataStream.h"
 
-struct FileEntry {
-	ieDword resLocator;
-	ieDword dataOffset;
-	ieDword fileSize;
-	ieWord  type;
-	ieWord  u1; //Unknown Field
-};
-
-struct TileEntry {
-	ieDword resLocator;
-	ieDword dataOffset;
-	ieDword tilesCount;
-	ieDword tileSize; //named tilesize so it isn't confused
-	ieWord  type;
-	ieWord  u1; //Unknown Field
-};
-
 class BIFImporter : public ArchiveImporter {
 private:
+	struct FileEntry {
+		ieDword offset;
+		ieDword size;
+
+		FileEntry(ieDword Offset, ieDword Size);
+	};
+
+	typedef std::pair<ieDword, FileEntry> FileEntryPair;
+	typedef std::map<ieDword, FileEntry> FileEntryMap;
+
+	struct TileEntry {
+		ieDword offset;
+		ieDword count;
+		ieDword size;
+
+		TileEntry(ieDword Offset, ieDword Count, ieDword Size);
+	};
+
+	typedef std::pair<ieDword, TileEntry> TileEntryPair;
+	typedef std::map<ieDword, TileEntry> TileEntryMap;
+
+	FileEntryMap files;
+	TileEntryMap tiles;
+
 	char path[_MAX_PATH];
-	FileEntry* fentries;
-	TileEntry* tentries;
-	ieDword fentcount, tentcount;
 	DataStream* stream;
+
 public:
 	BIFImporter();
 	~BIFImporter();
@@ -59,6 +67,7 @@ public:
 	int OpenArchive(const char* filename);
 	int CreateArchive(DataStream *compressed);
 	DataStream* GetStream(unsigned long Resource, unsigned long Type);
+
 private:
 	void ReadBIF();
 };
