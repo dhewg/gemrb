@@ -119,10 +119,10 @@ void CachedDirectoryImporter::Refresh()
 			continue;
 		const char *name = it.GetName();
 		strnlwrcpy(buf, name, _MAX_PATH, false);
-		if (cache.find(buf) != cache.end()) {
+		if (cache.has(buf)) {
 			printMessage("CachedDirectoryImporter", "Duplicate '%s' files in '%s' directory", LIGHT_RED, buf, path);
 		}
-		cache[buf] = name;
+		cache.set(buf, name);
 	} while (++it);
 }
 
@@ -137,37 +137,33 @@ static const char *ConstructFilename(const char* resname, const char* ext)
 
 bool CachedDirectoryImporter::HasResource(const char* resname, SClass_ID type)
 {
-	const char* filename = ConstructFilename(resname, core->TypeExt(type));
-	return (cache.find(filename) != cache.end());
+	return cache.has(ConstructFilename(resname, core->TypeExt(type)));
 }
 
 bool CachedDirectoryImporter::HasResource(const char* resname, const ResourceDesc &type)
 {
-	const char* filename = ConstructFilename(resname, type.GetExt());
-	return (cache.find(filename) != cache.end());
+	return cache.has(ConstructFilename(resname, type.GetExt()));
 }
 
 DataStream* CachedDirectoryImporter::GetResource(const char* resname, SClass_ID type)
 {
-	const char* filename = ConstructFilename(resname, core->TypeExt(type));
-	std::map<std::string, std::string>::const_iterator it = cache.find(filename);
-	if (it == cache.end())
+	const std::string *s = cache.get(ConstructFilename(resname, core->TypeExt(type)));
+	if (!s)
 		return NULL;
 	char buf[_MAX_PATH];
 	strcpy(buf, path);
-	PathAppend(buf, it->second.c_str());
+	PathAppend(buf, s->c_str());
 	return FileStream::OpenFile(buf);
 }
 
 DataStream* CachedDirectoryImporter::GetResource(const char* resname, const ResourceDesc &type)
 {
-	const char* filename = ConstructFilename(resname, type.GetExt());
-	std::map<std::string, std::string>::const_iterator it = cache.find(filename);
-	if (it == cache.end())
+	const std::string *s = cache.get(ConstructFilename(resname, type.GetExt()));
+	if (!s)
 		return NULL;
 	char buf[_MAX_PATH];
 	strcpy(buf, path);
-	PathAppend(buf, it->second.c_str());
+	PathAppend(buf, s->c_str());
 	return FileStream::OpenFile(buf);
 }
 
