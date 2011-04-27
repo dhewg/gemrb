@@ -30,7 +30,6 @@
 
 #include "win32def.h"
 
-#include "FileCache.h"
 #include "GameData.h"
 #include "Interface.h"
 #include "Palette.h"
@@ -72,7 +71,7 @@ bool BAMImporter::Open(DataStream* stream)
 	str->Read( Signature, 8 );
 	if (strncmp( Signature, "BAMCV1  ", 8 ) == 0) {
 		str->Seek( 4, GEM_CURRENT_POS );
-		DataStream* cached = CacheCompressedStream(stream, stream->filename);
+		DataStream* cached = gamedata->AddCompressedCacheFile(stream, stream->filename);
 		delete str;
 		if (!cached)
 			return false;

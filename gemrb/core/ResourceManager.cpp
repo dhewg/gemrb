@@ -20,7 +20,10 @@
 
 #include "ResourceManager.h"
 
+#include "System/VFS.h"
 #include "System/FileStream.h"
+#include "System/DataStream.h"
+#include "Compressor.h"
 #include "Interface.h"
 #include "PluginMgr.h"
 #include "Resource.h"
@@ -225,5 +228,85 @@ FileStream *ResourceManager::ModifyCacheFile(const char *filename)
 	}
 
 	return stream;
+}
+
+DataStream* ResourceManager::AddCacheFile(const char *filename)
+{
+	if (!core->GameOnCD)
+		return FileStream::OpenFile(filename);
+
+	char fname[_MAX_PATH];
+	ExtractFileFromPath(fname, filename);
+
+	FileStream *dest = OpenCacheFile(fname);
+
+	// already in cache
+	if (dest)
+		return dest;
+
+	FileStream* src = FileStream::OpenFile(fname);
+	dest = CreateCacheFile(fname);
+
+	if (!src || !dest) {
+		printMessage("ResourceManager", "Failed to copy file '%s'\n", RED, fname);
+		abort();
+	}
+
+	size_t blockSize = 1024 * 1000;
+	char buff[1024 * 1000];
+	do {
+		if (blockSize > src->Remains())
+			blockSize = src->Remains();
+		size_t len = src->Read(buff, blockSize);
+		size_t c = dest->Write(buff, len);
+		if (c != len) {
+			printMessage("ResourceManager", "Failed to write to file '%s'\n", RED, fname);
+			abort();
+		}
+	} while (src->Remains());
+
+	delete src;
+	delete dest;
+
+	return OpenCacheFile(fname);
+}
+
+DataStream *ResourceManager::AddCompressedCacheFile(DataStream *stream, const char* filename, int length, bool overwrite)
+{
+	if (!core->IsAvailable(PLUGIN_COMPRESSION_ZLIB)) {
+		printMessage("ResourceManager", "No compression manager available.\nCannot load compressed file.\n", RED);
+		return NULL;
+	}
+
+	char fname[_MAX_PATH];
+	ExtractFileFromPath(fname, filename);
+
+	FileStream *str = NULL;
+
+	if (!overwrite)
+		str = OpenCacheFile(fname);
+
+	if (!str) {
+		FileStream *out = CreateCacheFile(fname);
+
+		if (!out) {
+			printMessage("ResourceManager", "Failed to write to file '%s'.\n", RED, fname);
+			return NULL;
+		}
+
+		PluginHolder<Compressor> comp(PLUGIN_COMPRESSION_ZLIB);
+		if (comp->Decompress(out, stream, length) != GEM_OK) {
+			delete out;
+			return NULL;
+		}
+
+		delete out;
+	} else {
+		stream->Seek(length, GEM_CURRENT_POS);
+	}
+
+	delete str;
+
+	return OpenCacheFile(fname);
 }
 

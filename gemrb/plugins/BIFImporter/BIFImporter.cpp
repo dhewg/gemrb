@@ -23,7 +23,6 @@
 #include "win32def.h"
 
 #include "Compressor.h"
-#include "FileCache.h"
 #include "GameData.h"
 #include "Interface.h"
 #include "System/SlicedStream.h"
@@ -72,7 +71,7 @@ int BIFImporter::DecompressSaveGame(DataStream *compressed)
 		compressed->ReadDword( &declen );
 		compressed->ReadDword( &complen );
 		print( "Decompressing %s\n", fname );
-		DataStream* cached = CacheCompressedStream(compressed, fname, complen, true);
+		DataStream* cached = gamedata->AddCompressedCacheFile(compressed, fname, complen, true);
 		free( fname );
 		if (!cached)
 			return GEM_ERROR;
@@ -146,7 +145,7 @@ int BIFImporter::OpenArchive(const char* filename)
 	delete file;
 	//normal bif, not in cache
 	if (strncmp( Signature, "BIFFV1  ", 8 ) == 0) {
-		stream = CacheFile( filename );
+		stream = gamedata->AddCacheFile( filename );
 		if (!stream)
 			return GEM_ERROR;
 		stream->Read( Signature, 8 );
@@ -169,7 +168,7 @@ int BIFImporter::OpenArchive(const char* filename)
 		compressed->ReadDword( &declen );
 		compressed->ReadDword( &complen );
 		print( "Decompressing\n" );
-		stream = CacheCompressedStream(compressed, fname, complen);
+		stream = gamedata->AddCompressedCacheFile(compressed, fname, complen);
 		free( fname );
 		delete compressed;
 		if (!stream)

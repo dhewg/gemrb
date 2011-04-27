@@ -51,7 +51,6 @@ libgemrb_core_la_SOURCES = \
 	GameScript/Objects.cpp \
 	GameScript/Triggers.cpp \
 	GlobalTimer.cpp \
-	FileCache.cpp \
 	Image.cpp \
 	ImageFactory.cpp \
 	ImageMgr.cpp \

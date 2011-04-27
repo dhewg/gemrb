@@ -69,6 +69,8 @@ public:
 	FileStream *CreateCacheFile(const char *filename);
 	FileStream *CreateCacheFile(const char *filename, SClass_ID ClassID);
 	FileStream *ModifyCacheFile(const char *filename);
+	DataStream *AddCacheFile(const char* filename);
+	DataStream *AddCompressedCacheFile(DataStream *stream, const char *filename, int length = 0, bool overwrite = false);
 
 private:
 	std::vector<Holder<ResourceSource> > searchPath;
