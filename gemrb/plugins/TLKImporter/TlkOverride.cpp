@@ -22,6 +22,8 @@
 
 #include "TlkOverride.h"
 
+#include "GameData.h"
+
 #include <cstdio>
 #include <cassert>
 
@@ -301,42 +303,43 @@ char* CTlkOverride::ResolveAuxString(ieStrRef strref, int &Length)
 
 DataStream* CTlkOverride::GetAuxHdr(bool create)
 {
-	char nPath[_MAX_PATH];
-	char Signature[TOH_HEADER_SIZE];
+	FileStream *fs = gamedata->ModifyCacheFile("default.toh");
 
-	PathJoin( nPath, core->CachePath, "default.toh", NULL );
-	FileStream* fs = new FileStream();
-retry:
-	if (fs->Modify(nPath)) {
+	if (fs)
 		return fs;
-	}
-	if (create) {
-		fs->Create( "default", IE_TOH_CLASS_ID);
-		memset(Signature,0,sizeof(Signature));
-		memcpy(Signature,"TLK ",4);
-		fs->Write(Signature, sizeof(Signature));
-		create = false;
-		goto retry;
-	}
+
+	if (!create)
+		return NULL;
+
+	fs = gamedata->CreateCacheFile("default", IE_TOH_CLASS_ID);
+
+	char Signature[TOH_HEADER_SIZE];
+	memset(Signature,0,sizeof(Signature));
+	memcpy(Signature,"TLK ",4);
+
+	fs->Write(Signature, sizeof(Signature));
+
+	// old behaviour: reopen to gain r/w access mode
 	delete fs;
-	return NULL;
+	fs = gamedata->ModifyCacheFile("default.toh");
+	return fs;
 }
 
 DataStream* CTlkOverride::GetAuxTlk(bool create)
 {
-	char nPath[_MAX_PATH];
-	PathJoin( nPath, core->CachePath, "default.tot", NULL );
-	FileStream* fs = new FileStream();
-retry:
-	if (fs->Modify(nPath)) {
+	FileStream *fs = gamedata->ModifyCacheFile("default.tot");
+
+	if (fs)
 		return fs;
-	}
-	if (create) {
-		fs->Create( "default", IE_TOT_CLASS_ID);
-		create = false;
-		goto retry;
-	}
+
+	if (!create)
+		return NULL;
+
+	fs = gamedata->CreateCacheFile("default", IE_TOT_CLASS_ID);
+
+	// old behaviour: reopen to gain r/w access mode
 	delete fs;
-	return NULL;
+	fs = gamedata->ModifyCacheFile("default.tot");
+	return fs;
 }
 

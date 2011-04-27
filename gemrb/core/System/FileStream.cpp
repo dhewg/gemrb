@@ -213,13 +213,6 @@ bool FileStream::Modify(const char* fname)
 	Pos = 0;
 	return true;
 }
-
-//Creating file in the cache
-bool FileStream::Create(const char* fname, SClass_ID ClassID)
-{
-	return Create(core->CachePath, fname, ClassID);
-}
-
 bool FileStream::Create(const char *folder, const char* fname, SClass_ID ClassID)
 {
 	char path[_MAX_PATH];
@@ -229,7 +222,6 @@ bool FileStream::Create(const char *folder, const char* fname, SClass_ID ClassID
 	return Create(path);
 }
 
-//Creating file outside of the cache
 bool FileStream::Create(const char *path)
 {
 	Close();

@@ -4775,10 +4775,15 @@ int Interface::CloseCurrentStore()
 	if (size > 0) {
 		//created streams are always autofree (close file on destruct)
 		//this one will be destructed when we return from here
-		FileStream str;
+		FileStream *str = gamedata->CreateCacheFile(CurrentStore->Name, IE_STO_CLASS_ID);
+		if (!str) {
+			printMessage("Core", "Unable to open '%s' for writing...\n", LIGHT_RED, CurrentStore->Name);
+			abort();
+		}
 
-		str.Create( CurrentStore->Name, IE_STO_CLASS_ID );
-		int ret = sm->PutStore (&str, CurrentStore);
+		int ret = sm->PutStore (str, CurrentStore);
+		delete str;
+
 		if (ret <0) {
 			printMessage("Core", "Store removed: %s\n", YELLOW,
 				CurrentStore->Name);
@@ -5033,10 +5038,11 @@ int Interface::SwapoutArea(Map *map)
 	if (size > 0) {
 		//created streams are always autofree (close file on destruct)
 		//this one will be destructed when we return from here
-		FileStream str;
+		FileStream *str = gamedata->CreateCacheFile(map->GetScriptName(), IE_ARE_CLASS_ID);
 
-		str.Create( map->GetScriptName(), IE_ARE_CLASS_ID );
-		int ret = mm->PutArea (&str, map);
+		int ret = mm->PutArea (str, map);
+		delete str;
+
 		if (ret <0) {
 			printMessage("Core", "Area removed: %s\n", YELLOW,
 				map->GetScriptName());

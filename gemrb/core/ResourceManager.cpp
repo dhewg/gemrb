@@ -20,6 +20,7 @@
 
 #include "ResourceManager.h"
 
+#include "System/FileStream.h"
 #include "Interface.h"
 #include "PluginMgr.h"
 #include "Resource.h"
@@ -156,3 +157,37 @@ Resource* ResourceManager::GetResource(const char* ResRef, const TypeID *type, b
 	}
 	return NULL;
 }
+
+FileStream *ResourceManager::CreateCacheFile(const char *filename, SClass_ID ClassID)
+{
+	FileStream *stream = new FileStream();
+
+	if (!stream)
+		return NULL;
+
+	if (!stream->Create(core->CachePath, filename, ClassID)) {
+		delete stream;
+		return NULL;
+	}
+
+	return stream;
+}
+
+FileStream *ResourceManager::ModifyCacheFile(const char *filename)
+{
+	FileStream *stream = new FileStream();
+
+	if (!stream)
+		return NULL;
+
+	char path[_MAX_PATH];
+	PathJoin(path, core->CachePath, filename, NULL);
+
+	if (!stream->Modify(path)) {
+		delete stream;
+		return NULL;
+	}
+
+	return stream;
+}
+

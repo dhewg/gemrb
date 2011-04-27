@@ -34,6 +34,7 @@
 
 #define RM_REPLACE_SAME_SOURCE 1
 
+class FileStream;
 class DataStream;
 class Resource;
 class ResourceSource;
@@ -62,6 +63,10 @@ public:
 	DataStream* GetResource(const char* resname, SClass_ID type, bool silent = false) const;
 	/** Returns Resource object associated to given resource */
 	Resource* GetResource(const char* resname, const TypeID *type, bool silent = false) const;
+
+	// File cache functions
+	FileStream *CreateCacheFile(const char *filename, SClass_ID ClassID);
+	FileStream *ModifyCacheFile(const char *filename);
 
 private:
 	std::vector<Holder<ResourceSource> > searchPath;
