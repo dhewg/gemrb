@@ -24,6 +24,7 @@
 
 #include "Compressor.h"
 #include "FileCache.h"
+#include "GameData.h"
 #include "Interface.h"
 #include "System/SlicedStream.h"
 #include "System/FileStream.h"
@@ -183,13 +184,10 @@ int BIFImporter::OpenArchive(const char* filename)
 
 	if (strncmp( Signature, "BIFCV1.0", 8 ) == 0) {
 		//print("'BIFCV1.0' Compressed File Found\n");
-		PathJoin( path, core->CachePath, compressed->filename, NULL );
-		if (file_exists(path)) {
+		stream = gamedata->OpenCacheFile(compressed->filename);
+		if (stream) {
 			//print("Found in Cache\n");
 			delete compressed;
-			stream = FileStream::OpenFile(path);
-			if (!stream)
-				return GEM_ERROR;
 			stream->Read( Signature, 8 );
 			if (strncmp( Signature, "BIFFV1  ", 8 ) == 0) {
 				ReadBIF();
@@ -205,8 +203,8 @@ int BIFImporter::OpenArchive(const char* filename)
 		compressed->ReadDword( &unCompBifSize );
 		print( "\nDecompressing file: [..........]" );
 		fflush(stdout);
-		FileStream out;
-		if (!out.Create(path)) {
+		FileStream *out = gamedata->CreateCacheFile(compressed->filename);
+		if (!out) {
 			printMessage("BIFImporter", "Cannot write %s.\n", RED, path);
 			return GEM_ERROR;
 		}
@@ -216,10 +214,10 @@ int BIFImporter::OpenArchive(const char* filename)
 			ieDword complen, declen;
 			compressed->ReadDword( &declen );
 			compressed->ReadDword( &complen );
-			if (comp->Decompress( &out, compressed, complen ) != GEM_OK) {
+			if (comp->Decompress( out, compressed, complen ) != GEM_OK) {
 				return GEM_ERROR;
 			}
-			finalsize = out.GetPos();
+			finalsize = out->GetPos();
 			if (( int ) ( finalsize * ( 10.0 / unCompBifSize ) ) != laststep) {
 				laststep++;
 				print( "\b\b\b\b\b\b\b\b\b\b\b" );
@@ -234,8 +232,8 @@ int BIFImporter::OpenArchive(const char* filename)
 			}
 		}
 		print( "\n" );
+		stream = gamedata->OpenCacheFile(compressed->filename);
 		delete compressed;
-		stream = FileStream::OpenFile(path);
 		if (!stream)
 			return GEM_ERROR;
 		stream->Read( Signature, 8 );

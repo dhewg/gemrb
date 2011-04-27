@@ -65,6 +65,8 @@ public:
 	Resource* GetResource(const char* resname, const TypeID *type, bool silent = false) const;
 
 	// File cache functions
+	FileStream *OpenCacheFile(const char *filename) const;
+	FileStream *CreateCacheFile(const char *filename);
 	FileStream *CreateCacheFile(const char *filename, SClass_ID ClassID);
 	FileStream *ModifyCacheFile(const char *filename);
 

@@ -158,6 +158,42 @@ Resource* ResourceManager::GetResource(const char* ResRef, const TypeID *type, b
 	return NULL;
 }
 
+FileStream *ResourceManager::OpenCacheFile(const char *filename) const
+{
+	FileStream *stream = new FileStream();
+
+	if (!stream)
+		return NULL;
+
+	char path[_MAX_PATH];
+	PathJoin(path, core->CachePath, filename, NULL);
+
+	if (!stream->Open(path)) {
+		delete stream;
+		return NULL;
+	}
+
+	return stream;
+}
+
+FileStream *ResourceManager::CreateCacheFile(const char *filename)
+{
+	FileStream *stream = new FileStream();
+
+	if (!stream)
+		return NULL;
+
+	char path[_MAX_PATH];
+	PathJoin(path, core->CachePath, filename, NULL);
+
+	if (!stream->Create(path)) {
+		delete stream;
+		return NULL;
+	}
+
+	return stream;
+}
+
 FileStream *ResourceManager::CreateCacheFile(const char *filename, SClass_ID ClassID)
 {
 	FileStream *stream = new FileStream();
