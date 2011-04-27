@@ -558,8 +558,6 @@ public:
 	const char * QuerySlotResRef(unsigned int idx) const;
 	/*returns true if an itemtype is acceptable for a slottype, also checks the usability flags */
 	int CanUseItemType(int slottype, Item *item, Actor *actor=NULL, bool feedback=false, bool equipped=false) const;
-	/*removes single file from cache*/
-	void RemoveFromCache(const ieResRef resref, SClass_ID SClassID);
 	/*removes all files from directory*/
 	void DelTree(const char *path, bool onlysaved);
 	/*returns 0,1,2 based on how the file should be saved */

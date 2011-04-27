@@ -25,19 +25,18 @@
 #include "exports.h"
 
 #include "Holder.h"
+#include "HashMap.h"
 
+#include <string>
 #include <vector>
 
-#ifdef _MSC_VER // No SFINAE
 #include "ResourceSource.h"
-#endif
 
 #define RM_REPLACE_SAME_SOURCE 1
 
 class FileStream;
 class DataStream;
 class Resource;
-class ResourceSource;
 class TypeID;
 
 class GEM_EXPORT ResourceManager {
@@ -72,8 +71,13 @@ public:
 	DataStream *AddCacheFile(const char* filename);
 	DataStream *AddCompressedCacheFile(DataStream *stream, const char *filename, int length = 0, bool overwrite = false);
 
+	void RemoveCacheFile(const ieResRef resref, SClass_ID ClassID);
+	void ClearFileCache(bool onlysaved);
+
 private:
 	std::vector<Holder<ResourceSource> > searchPath;
+
+	HashMap<std::string> cacheMap;
 };
 
 #endif

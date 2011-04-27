@@ -34,7 +34,6 @@ ResourceManager::ResourceManager()
 {
 }
 
-
 ResourceManager::~ResourceManager()
 {
 }
@@ -67,10 +66,24 @@ static void PrintPossibleFiles(const char* ResRef, const TypeID *type)
 	}
 }
 
-bool ResourceManager::Exists(const char *ResRef, SClass_ID type, bool silent) const 
+static const char *ConstructFilename(const char* resname, const char* ext)
+{
+	static char buf[_MAX_PATH];
+	strnlwrcpy(buf, resname, _MAX_PATH-4, false);
+	strcat(buf, ".");
+	strcat(buf, ext);
+	return buf;
+}
+
+bool ResourceManager::Exists(const char *ResRef, SClass_ID type, bool silent) const
 {
 	if (ResRef[0] == '\0')
 		return false;
+
+	const std::string *path = cacheMap.get(ConstructFilename(ResRef, core->TypeExt(type)));
+	if (path)
+		return true;
+
 	// TODO: check various caches
 	for (size_t i = 0; i < searchPath.size(); i++) {
 		if (searchPath[i]->HasResource( ResRef, type )) {
@@ -89,8 +102,14 @@ bool ResourceManager::Exists(const char *ResRef, const TypeID *type, bool silent
 {
 	if (ResRef[0] == '\0')
 		return false;
+
 	// TODO: check various caches
 	const std::vector<ResourceDesc> &types = PluginMgr::Get()->GetResourceDesc(type);
+
+	for (size_t j = 0; j < types.size(); j++)
+		if (cacheMap.get(ConstructFilename(ResRef, types[j].GetExt())))
+			return true;
+
 	for (size_t j = 0; j < types.size(); j++) {
 		for (size_t i = 0; i < searchPath.size(); i++) {
 			if (searchPath[i]->HasResource(ResRef, types[j])) {
@@ -111,10 +130,19 @@ DataStream* ResourceManager::GetResource(const char* ResRef, SClass_ID type, boo
 {
 	if (ResRef[0] == '\0')
 		return NULL;
+
 	if (!silent) {
 		printMessage("ResourceManager", "Searching for %s.%s...", WHITE,
 			ResRef, core->TypeExt(type));
 	}
+
+	FileStream *str = OpenCacheFile(ConstructFilename(ResRef, core->TypeExt(type)));
+	if (str) {
+		if (!silent)
+			printStatus("Cache", GREEN );
+		return str;
+	}
+
 	for (size_t i = 0; i < searchPath.size(); i++) {
 		DataStream *ds = searchPath[i]->GetResource(ResRef, type);
 		if (ds) {
@@ -138,6 +166,19 @@ Resource* ResourceManager::GetResource(const char* ResRef, const TypeID *type, b
 		printMessage("ResourceManager", "Searching for %s... ", WHITE, ResRef);
 	}
 	const std::vector<ResourceDesc> &types = PluginMgr::Get()->GetResourceDesc(type);
+
+	for (size_t j = 0; j < types.size(); j++) {
+		FileStream *str = OpenCacheFile(ConstructFilename(ResRef, types[j].GetExt()));
+		if (str) {
+			Resource *res = types[j].Create(str);
+			if (!silent) {
+				print( "%s.%s...", ResRef, types[j].GetExt() );
+				printStatus("Cache", GREEN);
+			}
+			return res;
+		}
+	}
+
 	for (size_t j = 0; j < types.size(); j++) {
 		for (size_t i = 0; i < searchPath.size(); i++) {
 			DataStream *str = searchPath[i]->GetResource(ResRef, types[j]);
@@ -163,17 +204,18 @@ Resource* ResourceManager::GetResource(const char* ResRef, const TypeID *type, b
 
 FileStream *ResourceManager::OpenCacheFile(const char *filename) const
 {
+	const std::string *path = cacheMap.get(filename);
+	if (!path)
+		return NULL;
+
 	FileStream *stream = new FileStream();
 
 	if (!stream)
 		return NULL;
 
-	char path[_MAX_PATH];
-	PathJoin(path, core->CachePath, filename, NULL);
-
-	if (!stream->Open(path)) {
-		delete stream;
-		return NULL;
+	if (!stream->Open(path->c_str())) {
+		printMessage("ResourceManager", "Cache failure for '%s'.", LIGHT_RED, filename);
+		abort();
 	}
 
 	return stream;
@@ -194,6 +236,8 @@ FileStream *ResourceManager::CreateCacheFile(const char *filename)
 		return NULL;
 	}
 
+	cacheMap.replace(filename, stream->originalfile);
+
 	return stream;
 }
 
@@ -208,6 +252,8 @@ FileStream *ResourceManager::CreateCacheFile(const char *filename, SClass_ID Cla
 		delete stream;
 		return NULL;
 	}
+
+	cacheMap.replace(filename, stream->originalfile);
 
 	return stream;
 }
@@ -308,5 +354,22 @@ DataStream *ResourceManager::AddCompressedCacheFile(DataStream *stream, const ch
 	delete str;
 
 	return OpenCacheFile(fname);
+}
+
+void ResourceManager::RemoveCacheFile(const ieResRef resref, SClass_ID ClassID)
+{
+	char filename[_MAX_PATH];
+
+	PathJoinExt(filename, core->CachePath, resref, core->TypeExt(ClassID));
+	unlink (filename);
+
+	PathJoinExt(filename, resref, core->TypeExt(ClassID));
+	cacheMap.remove(filename);
+}
+
+void ResourceManager::ClearFileCache(bool onlysaved)
+{
+	core->DelTree(core->CachePath, onlysaved);
+	cacheMap.clear();
 }
 

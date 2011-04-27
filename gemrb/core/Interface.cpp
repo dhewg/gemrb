@@ -462,11 +462,12 @@ Interface::~Interface(void)
 	Actor::ReleaseMemory();
 
 	gamedata->ClearCaches();
+	// Removing all stuff from Cache, except bifs
+	if (!KeepCache)
+		gamedata->ClearFileCache(true);
+
 	delete gamedata;
 	gamedata = NULL;
-
-	// Removing all stuff from Cache, except bifs
-	if (!KeepCache) DelTree((const char *) CachePath, true);
 }
 
 void Interface::SetWindowFrame(int i, Sprite2D *Picture)
@@ -1477,9 +1478,6 @@ int Interface::Init()
 
 		char path[_MAX_PATH];
 
-		PathJoin( path, CachePath, NULL);
-		gamedata->AddSource(path, "Cache", PLUGIN_RESOURCE_DIRECTORY);
-
 		PathJoin( path, GemRBOverridePath, "override", GameType, NULL);
 		gamedata->AddSource(path, "GemRB Override", PLUGIN_RESOURCE_CACHEDDIRECTORY);
 
@@ -2415,7 +2413,10 @@ bool Interface::LoadConfig(const char* filename)
 		printMessage("Core", "Cache path %s doesn't exist, not a folder or contains alien files!\n", LIGHT_RED, CachePath );
 		return false;
 	}
-	if (!KeepCache) DelTree((const char *) CachePath, false);
+
+	if (!KeepCache)
+		gamedata->ClearFileCache(false);
+
 	FixPath( CachePath, true );
 
 	return true;
@@ -3927,7 +3928,8 @@ void Interface::LoadGame(SaveGame *sg, int ver_override)
 	WorldMapArray* new_worldmap = NULL;
 
 	LoadProgress(10);
-	if (!KeepCache) DelTree((const char *) CachePath, true);
+	if (!KeepCache)
+		gamedata->ClearFileCache(true);
 	LoadProgress(15);
 
 	if (sg == NULL) {
@@ -4411,14 +4413,6 @@ bool Interface::ProtectedExtension(const char *filename)
 	return false;
 }
 
-void Interface::RemoveFromCache(const ieResRef resref, SClass_ID ClassID)
-{
-	char filename[_MAX_PATH];
-
-	PathJoinExt(filename, CachePath, resref, TypeExt(ClassID));
-	unlink ( filename);
-}
-
 //this function checks if the path is eligible as a cache
 //if it contains a directory, or suspicious file extensions
 //we bail out, because the cache will be purged regularly.
@@ -4787,12 +4781,12 @@ int Interface::CloseCurrentStore()
 		if (ret <0) {
 			printMessage("Core", "Store removed: %s\n", YELLOW,
 				CurrentStore->Name);
-			RemoveFromCache(CurrentStore->Name, IE_STO_CLASS_ID);
+			gamedata->RemoveCacheFile(CurrentStore->Name, IE_STO_CLASS_ID);
 		}
 	} else {
 		printMessage("Core", "Store removed: %s\n", YELLOW,
 			CurrentStore->Name);
-		RemoveFromCache(CurrentStore->Name, IE_STO_CLASS_ID);
+		gamedata->RemoveCacheFile(CurrentStore->Name, IE_STO_CLASS_ID);
 	}
 	//make sure the stream isn't connected to sm, or it will be double freed
 	delete CurrentStore;
@@ -5046,12 +5040,12 @@ int Interface::SwapoutArea(Map *map)
 		if (ret <0) {
 			printMessage("Core", "Area removed: %s\n", YELLOW,
 				map->GetScriptName());
-			RemoveFromCache(map->GetScriptName(), IE_ARE_CLASS_ID);
+			gamedata->RemoveCacheFile(map->GetScriptName(), IE_ARE_CLASS_ID);
 		}
 	} else {
 		printMessage("Core", "Area removed: %s\n", YELLOW,
 			map->GetScriptName());
-		RemoveFromCache(map->GetScriptName(), IE_ARE_CLASS_ID);
+		gamedata->RemoveCacheFile(map->GetScriptName(), IE_ARE_CLASS_ID);
 	}
 	//make sure the stream isn't connected to sm, or it will be double freed
 	return 0;
