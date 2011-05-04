@@ -26,19 +26,13 @@
 #include "ArchiveImporter.h"
 #include "PluginMgr.h"
 
-#include "Dictionary.h"
+#include "StringMap.h"
 
 #include <vector>
 
 class DataStream;
 class Resource;
 class ResourceDesc;
-
-struct RESEntry {
-	ieResRef ResRef;
-	ieWord   Type;
-	ieDword  ResLocator;
-};
 
 struct BIFEntry {
 	char* name;
@@ -55,10 +49,85 @@ struct KEYCache {
 	PluginHolder<ArchiveImporter> plugin;
 };
 
+// the key for this specific hashmap
+struct MapKey {
+	ieResRef ref;
+	ieWord type;
+
+	MapKey()
+	{
+	}
+};
+
+// hash template for the above key for this hashmap
+template<>
+struct HashKey<MapKey> {
+	// hash without MapKey construction
+	static inline unsigned int hash(const ieResRef ref, SClass_ID type)
+	{
+		unsigned int h = type;
+		const char *c = ref;
+
+		for (unsigned int i = 0; *c && i < sizeof(ieResRef); ++i)
+			h = (h << 5) + h + tolower(*c++);
+
+		return h;
+	}
+
+	static inline unsigned int hash(const MapKey &key)
+	{
+		return hash(key.ref, key.type);
+	}
+
+	// equal check without MapKey construction
+	static inline bool equals(const MapKey &a, const ieResRef ref, SClass_ID type)
+	{
+		if (a.type != type)
+			return false;
+
+		return stricmp(a.ref, ref) == 0;
+	}
+
+	static inline bool equals(const MapKey &a, const MapKey &b)
+	{
+		return equals(a, b.ref, b.type);
+	}
+
+	static inline void copy(MapKey &a, const MapKey &b)
+	{
+		a.type = b.type;
+		strncpy(a.ref, b.ref, sizeof(ieResRef));
+	}
+};
+
+class KeyMap : public HashMap<MapKey, ieDword> {
+public:
+	// lookup without MapKey construction
+	const ieDword *get(const ieResRef ref, SClass_ID type) const
+	{
+		if (!isInitialized())
+			return NULL;
+
+		incAccesses();
+
+		for (Entry *e = getBucketByHash(_hash.hash(ref, type)); e; e = e->next)
+			if (_hash.equals(e->key, ref, type))
+				return &e->value;
+
+		return NULL;
+	}
+
+	// lookup without MapKey construction
+	bool has(const ieResRef ref, SClass_ID type) const
+	{
+		return get(ref, type) != NULL;
+	}
+};
+
 class KEYImporter : public ResourceSource {
 private:
 	std::vector< BIFEntry> biffiles;
-	Dictionary resources;
+	KeyMap resources;
 
 	KEYCache lastSeenCache;
 
