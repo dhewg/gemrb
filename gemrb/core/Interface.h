@@ -468,8 +468,10 @@ public:
 	void DrawConsole();
 	/** Get the SaveGameIterator */
 	SaveGameIterator * GetSaveGameIterator() const;
-	/** Get the Variables Dictionary */
-	Variables * GetDictionary() const;
+	/** Gets a variable from the dictionary */
+	ieDword GetVariable(const char *key, ieDword defaultValue) const;
+	/** Sets a variable in the dictionary */
+	void SetVariable(const char *key, ieDword value);
 	/** Get the Token Dictionary */
 	Variables * GetTokenDictionary() const;
 	/** Get the Music Manager */

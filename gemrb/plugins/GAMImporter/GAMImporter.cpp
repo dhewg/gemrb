@@ -184,11 +184,10 @@ Game* GAMImporter::LoadGame(Game *newGame, int ver_override)
 		// 0 - normal, 1 - tutorial, 2 - extension
 		AutoTable tm("STARTARE");
 		ieDword playmode = 0;
+
 		//only bg2 has 9 rows (iwd's have 6 rows - normal+extension)
-		if (tm && tm->GetRowCount()==9) {
-			core->GetDictionary()->Lookup( "PlayMode", playmode );
-			playmode *= 3;
-		}
+		if (tm && tm->GetRowCount()==9)
+			playmode = 3 * core->GetVariable("PlayMode", 0);
 
 		const char* resref = tm->QueryField( playmode );
 		strnlwrcpy( newGame->CurrentArea, resref, 8 );

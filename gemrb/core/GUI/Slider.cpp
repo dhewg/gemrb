@@ -23,7 +23,6 @@
 #include "win32def.h"
 
 #include "Interface.h"
-#include "Variables.h"
 #include "Video.h"
 #include "GUI/Window.h"
 
@@ -110,7 +109,7 @@ void Slider::SetPosition(unsigned int pos)
 	if (VarName[0] != 0) {
 		if (!Value)
 			Value = 1;
-		core->GetDictionary()->SetAt( VarName, pos * Value );
+		core->SetVariable(VarName, pos * Value);
 	}
 	Changed = true;
 }

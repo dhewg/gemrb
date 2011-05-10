@@ -1855,8 +1855,7 @@ static PyObject* GemRB_Control_SetVarAssoc(PyObject * /*self*/, PyObject* args)
 	ctrl->Value = Value;
 	/** setting the correct state for this control */
 	/** it is possible to set up a default value, if Lookup returns false, use it */
-	Value = 0;
-	core->GetDictionary()->Lookup( VarName, Value );
+	Value = core->GetVariable(VarName, 0);
 	Window* win = core->GetWindow( WindowIndex );
 	win->RedrawControls(VarName, Value);
 
@@ -3731,7 +3730,7 @@ static PyObject* GemRB_SetVar(PyObject * /*self*/, PyObject* args)
 		return AttributeError( GemRB_SetVar__doc );
 	}
 
-	core->GetDictionary()->SetAt( Variable, (ieDword) value );
+	core->SetVariable(Variable, (ieDword)value);
 
 	Py_INCREF( Py_None );
 	return Py_None;
@@ -3776,20 +3775,15 @@ PyDoc_STRVAR( GemRB_GetVar__doc,
 static PyObject* GemRB_GetVar(PyObject * /*self*/, PyObject* args)
 {
 	const char *Variable;
-	ieDword value;
 
 	if (!PyArg_ParseTuple( args, "s", &Variable )) {
 		return AttributeError( GemRB_GetVar__doc );
 	}
 
-	if (!core->GetDictionary()->Lookup( Variable, value )) {
-		return PyInt_FromLong( 0 );
-	}
-
 	// A PyInt is internally (probably) a long. Since we sometimes set
 	// variables to -1, cast value to a signed integer first, so it is
 	// sign-extended into a long if long is larger than int.
-	return PyInt_FromLong( (int)value );
+	return PyInt_FromLong((int)core->GetVariable(Variable, 0));
 }
 
 PyDoc_STRVAR( GemRB_CheckVar__doc,
@@ -3895,10 +3889,8 @@ static PyObject* GemRB_PlayMovie(PyObject * /*self*/, PyObject* args)
 		return AttributeError( GemRB_PlayMovie__doc );
 	}
 
-	ieDword ind = 0;
-
 	//Lookup will leave the flag untouched if it doesn't exist yet
-	core->GetDictionary()->Lookup(string, ind);
+	ieDword ind = core->GetVariable(string, 0);
 	if (flag)
 		ind = 0;
 	if (!ind) {

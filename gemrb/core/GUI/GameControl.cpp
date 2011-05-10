@@ -146,12 +146,10 @@ GameControl::GameControl(void)
 	DebugFlags = 0;
 	AIUpdateCounter = 1;
 	EnableRunning = true; //make this a game flag if you wish
-	ieDword tmp=0;
 
 	ResetTargetMode();
 
-	core->GetDictionary()->Lookup("Center",tmp);
-	if (tmp) {
+	if (core->GetVariable("Center", 0)) {
 		ScreenFlags=SF_ALWAYSCENTER|SF_CENTERONACTOR;
 	} else {
 		ScreenFlags = SF_CENTERONACTOR;
@@ -1960,8 +1958,8 @@ void GameControl::OnMouseUp(unsigned short x, unsigned short y, unsigned short B
 			DisplayStringCore(actor, VB_SELECT+core->Roll(1,3,-1), DS_CONST|DS_CONSOLE);
 			return;
 		}
-		core->GetDictionary()->SetAt( "MenuX", x );
-		core->GetDictionary()->SetAt( "MenuY", y );
+		core->SetVariable("MenuX", x);
+		core->SetVariable("MenuY", y);
 		core->GetGUIScriptEngine()->RunFunction( "GUICommon", "OpenFloatMenuWindow" );
 		return;
 	}
@@ -2378,22 +2376,21 @@ void GameControl::SetCutSceneMode(bool active)
 //Change game window geometries when a new window gets deactivated
 void GameControl::HandleWindowHide(const char *WindowName, const char *WindowPosition)
 {
-	Variables* dict = core->GetDictionary();
-	ieDword index;
+	ieDword index = core->GetVariable(WindowName, (ieDword)-1);
 
-	if (dict->Lookup( WindowName, index )) {
-		if (index != (ieDword) -1) {
-			Window* w = core->GetWindow( (unsigned short) index );
-			if (w) {
-				core->SetVisible( (unsigned short) index, WINDOW_INVISIBLE );
-				if (dict->Lookup( WindowPosition, index )) {
-					ResizeDel( w, index );
-				}
-				return;
+	if (index != (ieDword)-1) {
+		Window* w = core->GetWindow( (unsigned short) index );
+		if (w) {
+			core->SetVisible( (unsigned short) index, WINDOW_INVISIBLE );
+
+			index = core->GetVariable(WindowPosition, (ieDword)-1);
+			if (index != (ieDword)-1) {
+				ResizeDel( w, index );
 			}
-			printMessage("GameControl", "Invalid Window Index: %s:%u\n", LIGHT_RED,
-				WindowName, index);
+			return;
 		}
+		printMessage("GameControl", "Invalid Window Index: %s:%u\n", LIGHT_RED,
+			WindowName, index);
 	}
 }
 
@@ -2415,15 +2412,13 @@ int GameControl::HideGUI()
 	HandleWindowHide("OptionsWindow", "OptionsPosition");
 	HandleWindowHide("MessageWindow", "MessagePosition");
 	HandleWindowHide("ActionsWindow", "ActionsPosition");
-	//FloatWindow doesn't affect gamecontrol, so it is special
-	Variables* dict = core->GetDictionary();
-	ieDword index;
 
-	if (dict->Lookup( "FloatWindow", index )) {
-		if (index != (ieDword) -1) {
-			core->SetVisible( (unsigned short) index, WINDOW_INVISIBLE );
-		}
-	}
+	//FloatWindow doesn't affect gamecontrol, so it is special
+	ieDword index = core->GetVariable("FloatWindow", (ieDword)-1);
+
+	if (index != (ieDword)-1)
+		core->SetVisible( (unsigned short) index, WINDOW_INVISIBLE );
+
 	core->GetVideoDriver()->SetViewport( Owner->XPos, Owner->YPos, Width, Height );
 	return 1;
 }
@@ -2431,22 +2426,20 @@ int GameControl::HideGUI()
 //Change game window geometries when a new window gets activated
 void GameControl::HandleWindowReveal(const char *WindowName, const char *WindowPosition)
 {
-	Variables* dict = core->GetDictionary();
-	ieDword index;
+	ieDword index = core->GetVariable(WindowName, (ieDword)-1);
 
-	if (dict->Lookup( WindowName, index )) {
-		if (index != (ieDword) -1) {
-			Window* w = core->GetWindow( (unsigned short) index );
-			if (w) {
-				core->SetVisible( (unsigned short) index, WINDOW_VISIBLE );
-				if (dict->Lookup( WindowPosition, index )) {
-					ResizeAdd( w, index );
-				}
-				return;
+	if (index != (ieDword)-1) {
+		Window* w = core->GetWindow( (unsigned short) index );
+		if (w) {
+			core->SetVisible( (unsigned short) index, WINDOW_VISIBLE );
+			index = core->GetVariable(WindowPosition, (ieDword)-1);
+			if (index != (ieDword)-1) {
+				ResizeAdd( w, index );
 			}
-			printMessage("GameControl", "Invalid Window Index %s:%u\n", LIGHT_RED,
-				WindowName, index);
+			return;
 		}
+		printMessage("GameControl", "Invalid Window Index %s:%u\n", LIGHT_RED,
+			WindowName, index);
 	}
 }
 
@@ -2467,20 +2460,19 @@ int GameControl::UnhideGUI()
 	HandleWindowReveal("TopWindow", "TopPosition");
 	HandleWindowReveal("OtherWindow", "OtherPosition");
 	HandleWindowReveal("PortraitWindow", "PortraitPosition");
-	//the floatwindow is a special case
-	Variables* dict = core->GetDictionary();
-	ieDword index;
 
-	if (dict->Lookup( "FloatWindow", index )) {
-		if (index != (ieDword) -1) {
-			Window* fw = core->GetWindow( (unsigned short) index );
-			if (fw) {
-				core->SetVisible( (unsigned short) index, WINDOW_VISIBLE );
-				fw->Flags |=WF_FLOAT;
-				core->SetOnTop( index );
-			}
+	//the floatwindow is a special case
+	ieDword index = core->GetVariable("FloatWindow", (ieDword)-1);
+
+	if (index != (ieDword)-1) {
+		Window* fw = core->GetWindow( (unsigned short) index );
+		if (fw) {
+			core->SetVisible( (unsigned short) index, WINDOW_VISIBLE );
+			fw->Flags |=WF_FLOAT;
+			core->SetOnTop( index );
 		}
 	}
+
 	core->GetVideoDriver()->SetViewport( Owner->XPos, Owner->YPos, Width, Height );
 	return 1;
 }

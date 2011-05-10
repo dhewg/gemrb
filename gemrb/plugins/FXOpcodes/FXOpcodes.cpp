@@ -5025,9 +5025,9 @@ int fx_select_spell (Scriptable* /*Owner*/, Actor* target, Effect* fx)
 		sb->SetCustomSpellInfo(data, fx->Source, count);
 		core->FreeResRefTable(data, count);
 	}
-	core->GetDictionary()->SetAt("Type",-1);
+	core->SetVariable("Type", (ieDword)-1);
 	//this is required, because not all of these opcodes are firing right at casting
-	core->GetDictionary()->SetAt("ActionLevel", 2);
+	core->SetVariable("ActionLevel", 2);
 	core->SetEventFlag(EF_ACTION);
 	return FX_NOT_APPLIED;
 }
@@ -5494,11 +5494,9 @@ int fx_create_contingency (Scriptable* /*Owner*/, Actor* target, Effect* fx)
 	}
 
 	if (target->InParty) {
-		Variables *dict = core->GetDictionary();
-
-		dict->SetAt( "P0", target->InParty );
-		dict->SetAt( "P1", fx->Parameter1 );
-		dict->SetAt( "P2", fx->Parameter2 );
+		core->SetVariable("P0", target->InParty);
+		core->SetVariable("P1", fx->Parameter1);
+		core->SetVariable("P2", fx->Parameter2);
 		core->SetEventFlag(EF_SEQUENCER);
 	}
 	return FX_NOT_APPLIED;
@@ -5922,11 +5920,9 @@ int fx_create_spell_sequencer(Scriptable* /*Owner*/, Actor* target, Effect* fx)
 	}
 	//just a call to activate the spell sequencer creation gui
 	if (target->InParty) {
-		Variables *dict = core->GetDictionary();
-
-		dict->SetAt( "P0", target->InParty );
-		dict->SetAt( "P1", fx->Parameter1 );           //maximum level
-		dict->SetAt( "P2", fx->Parameter2 | (2<<16) ); //count and target type
+		core->SetVariable("P0", target->InParty);
+		core->SetVariable("P1", fx->Parameter1);           //maximum level
+		core->SetVariable("P2", fx->Parameter2 | (2 << 16)); //count and target type
 		core->SetEventFlag(EF_SEQUENCER);
 	}
 	return FX_NOT_APPLIED;

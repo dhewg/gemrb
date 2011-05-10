@@ -30,10 +30,6 @@
 #include "ScriptEngine.h"
 #include "Video.h"
 
-#ifdef ANDROID
-#include "Variables.h"
-#endif
-
 #include <cstdio>
 #include <cstring>
 
@@ -138,11 +134,13 @@ void Control::OnKeyPress(unsigned char Key, unsigned short /*Mod*/)
 		case 'o': // volume down
 		case 'p': // volume up
 			int Ambients, Movie, Music, SFX, Voices;
-			core->GetDictionary()->Lookup( "Volume Ambients", (ieDword&)Ambients );
-			core->GetDictionary()->Lookup( "Volume Movie", (ieDword&)Movie );
-			core->GetDictionary()->Lookup( "Volume Music", (ieDword&)Music );
-			core->GetDictionary()->Lookup( "Volume SFX", (ieDword&)SFX );
-			core->GetDictionary()->Lookup( "Volume Voices", (ieDword&)Voices );
+
+			Ambients = core->GetVariable("Volume Ambients", 100);
+			Movie = core->GetVariable("Volume Movie", 100);
+			Music = core->GetVariable("Volume Music", 100);
+			SFX = core->GetVariable("Volume SFX", 100);
+			Voices = core->GetVariable("Volume Voices", 100);
+
 			if (Key=='o') {
 				if(Ambients>0) Ambients-=10; if(Ambients<0) Ambients=0;
 				if(Movie>0) Movie-=10; if(Movie<0) Movie=0;
@@ -156,11 +154,11 @@ void Control::OnKeyPress(unsigned char Key, unsigned short /*Mod*/)
 				if(SFX<100) SFX+=10; if(SFX>100) SFX=100;
 				if(Voices<100) Voices+=10; if(Voices>100) Voices=100;
 			}
-			core->GetDictionary()->SetAt( "Volume Ambients", Ambients );
-			core->GetDictionary()->SetAt( "Volume Movie", Movie );
-			core->GetDictionary()->SetAt( "Volume Music", Music );
-			core->GetDictionary()->SetAt( "Volume SFX", SFX );
-			core->GetDictionary()->SetAt( "Volume Voices", Voices );
+			core->SetVariable("Volume Ambients", Ambients);
+			core->SetVariable("Volume Movie", Movie);
+			core->SetVariable("Volume Music", Music);
+			core->SetVariable("Volume SFX", SFX);
+			core->SetVariable("Volume Voices", Voices);
 			core->GetAudioDrv()->UpdateVolume();
 			break;
 	}

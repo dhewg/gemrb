@@ -3484,11 +3484,21 @@ bool Interface::Quit(void)
 {
 	return video->Quit();
 }
-/** Returns the variables dictionary */
-Variables* Interface::GetDictionary() const
+
+ieDword Interface::GetVariable(const char *key, ieDword defaultValue) const
 {
-	return vars;
+	ieDword value;
+	if (vars->Lookup(key, value))
+		return value;
+
+	return defaultValue;
 }
+
+void Interface::SetVariable(const char *key, ieDword value)
+{
+	vars->SetAt(key, value);
+}
+
 /** Returns the token dictionary */
 Variables* Interface::GetTokenDictionary() const
 {
@@ -5369,7 +5379,7 @@ ieDword Interface::TranslateStat(const char *stat_name)
 
 void Interface::WaitForDisc(int disc_number, const char* path)
 {
-	GetDictionary()->SetAt( "WaitForDisc", (ieDword) disc_number );
+	SetVariable("WaitForDisc", (ieDword)disc_number);
 
 	GetGUIScriptEngine()->RunFunction( "GUICommonWindows", "OpenWaitForDiscWindow" );
 	do {

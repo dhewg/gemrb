@@ -36,7 +36,6 @@ class Game;
 #include "Callback.h"
 #include "Scriptable/Scriptable.h"
 #include "Scriptable/PCStatStruct.h"
-#include "Variables.h"
 
 #include <vector>
 

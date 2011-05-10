@@ -26,7 +26,6 @@
 #include "Interface.h"
 #include "Palette.h"
 #include "Sprite2D.h"
-#include "Variables.h"
 #include "Video.h"
 #include "GUI/Window.h"
 
@@ -122,9 +121,9 @@ void Label::OnMouseUp(unsigned short x, unsigned short y,
 {
 	//print( "Label::OnMouseUp\n" );
 	if (( x <= Width ) && ( y <= Height )) {
-		if (VarName[0] != 0) {
-			core->GetDictionary()->SetAt( VarName, Value );
-		}
+		if (VarName[0] != 0)
+			core->SetVariable(VarName, Value);
+
 		if (LabelOnPress) {
 			RunEventHandler( LabelOnPress );
 		}

@@ -585,11 +585,9 @@ void IniSpawn::SpawnCreature(CritterEntry &critter)
 	}
 
 	if (critter.Flags&CF_NO_DIFF_MASK) {
-		ieDword difficulty;
 		ieDword diff_bit;
 
-		core->GetDictionary()->Lookup("Difficulty Level", difficulty);
-		switch (difficulty)
+		switch (core->GetVariable("Difficulty Level", 0))
 		{
 		case 0:
 			diff_bit = CF_NO_DIFF_1;

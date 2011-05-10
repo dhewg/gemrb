@@ -173,9 +173,7 @@ SaveGameIterator::~SaveGameIterator(void)
 /* mission pack save */
 static const char* SaveDir()
 {
-	ieDword playmode = 0;
-	core->GetDictionary()->Lookup( "SaveDir", playmode );
-	if (playmode == 1) {
+	if (core->GetVariable("SaveDir", 0) == 1) {
 		return "mpsave";
 	}
 	return "save";

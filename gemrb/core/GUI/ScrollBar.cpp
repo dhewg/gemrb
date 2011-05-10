@@ -23,7 +23,6 @@
 #include "win32def.h"
 
 #include "Interface.h"
-#include "Variables.h"
 #include "Video.h"
 #include "GUI/EventMgr.h"
 #include "GUI/Window.h"
@@ -63,9 +62,9 @@ void ScrollBar::SetPos(int NewPos)
 		TextArea* t = ( TextArea* ) ta;
 		t->SetRow( Pos );
 	}
-	if (VarName[0] != 0) {
-		core->GetDictionary()->SetAt( VarName, Pos );
-	}
+	if (VarName[0] != 0)
+		core->SetVariable(VarName, Pos);
+
 	RunEventHandler( ScrollBarOnChange );
 }
 

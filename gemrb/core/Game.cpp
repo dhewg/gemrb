@@ -375,8 +375,7 @@ void Game::InitActorPos(Actor *actor)
 		error("Game", "Game is missing character start data.\n");
 	}
 	// 0 - single player, 1 - tutorial, 2 - expansion
-	ieDword playmode = 0;
-	core->GetDictionary()->Lookup( "PlayMode", playmode );
+	ieDword playmode = core->GetVariable("PlayMode", 0);
 
 	//Sometimes playmode is set to -1 (in pregenerate)
 	//normally execution shouldn't ever come here, but it actually does
@@ -1701,7 +1700,7 @@ void Game::SetExpansion(ieDword value)
 		break;
 	//TODO: move this hardcoded hack to the scripts
 	case 5:
-		core->GetDictionary()->SetAt( "PlayMode", 2 );
+		core->SetVariable("PlayMode", 2);
 
 		int i = GetPartySize(false);
 		while(i--) {

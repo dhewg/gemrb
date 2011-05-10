@@ -42,7 +42,6 @@
 #include "ie_types.h"
 
 #include "Audio.h"
-#include "Variables.h"
 #include "Video.h"
 
 #include <cassert>
@@ -358,8 +357,7 @@ void BIKPlayer::showFrame(unsigned char** buf, unsigned int *strides, unsigned i
 
 int BIKPlayer::setAudioStream()
 {
-	ieDword volume;
-	core->GetDictionary()->Lookup( "Volume Movie", volume) ;
+	ieDword volume = core->GetVariable("Volume Movie", 100);
 	int source = core->GetAudioDrv()->SetupNewStream(0, 0, 0, volume, false, false);
 	return source;
 }

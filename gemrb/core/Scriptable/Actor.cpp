@@ -368,8 +368,7 @@ Actor::Actor()
 		//This block is executed only once, when the first actor is loaded
 		InitActorTables();
 
-		TranslucentShadows = 0;
-		core->GetDictionary()->Lookup("Translucent Shadows", TranslucentShadows);
+		TranslucentShadows = core->GetVariable("Translucent Shadows", 0);
 		//get the needed size to store projectile immunity bitflags in Dwords
 		ProjectileSize = (core->GetProjectileServer()->GetHighestProjectileNumber()+31)/32;
 		//allowing 1024 bits (1024 projectiles ought to be enough for everybody)
@@ -955,9 +954,8 @@ void pcf_xp(Actor *actor, ieDword /*oldValue*/, ieDword /*newValue*/)
 		char varname[16];
 		sprintf(varname, "CheckLevelUp%d", pc);
 		core->GetGUIScriptEngine()->RunFunction("GUICommonWindows", "CheckLevelUp", true, pc);
-		ieDword NeedsLevelUp = 0;
-		core->GetDictionary()->Lookup(varname, NeedsLevelUp);
-		if (NeedsLevelUp == 1) {
+		// check if it needs a level up
+		if (core->GetVariable(varname, 0) == 1) {
 			displaymsg->DisplayConstantStringName(STR_LEVELUP, 0xffffff, actor);
 			actor->GotLUFeedback = true;
 		}
@@ -5366,8 +5364,7 @@ void Actor::Draw(const Region &screen)
 	// we always show circle/target on pause
 	if (drawcircle && !(gc->GetDialogueFlags() & DF_FREEZE_SCRIPTS)) {
 		// check marker feedback level
-		ieDword markerfeedback = 4;
-		core->GetDictionary()->Lookup("GUI Feedback Level", markerfeedback);
+		ieDword markerfeedback = core->GetVariable("GUI Feedback Level", 4);
 		if (Over) {
 			// picked creature
 			drawcircle = markerfeedback >= 1;

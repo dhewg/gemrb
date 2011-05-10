@@ -389,8 +389,8 @@ void MapControl::OnMouseLeave(unsigned short /*x*/, unsigned short /*y*/)
 
 void MapControl::ClickHandle(unsigned short Button)
 {
-	core->GetDictionary()->SetAt( "MapControlX", NotePosX );
-	core->GetDictionary()->SetAt( "MapControlY", NotePosY );
+	core->SetVariable("MapControlX", NotePosX);
+	core->SetVariable("MapControlY", NotePosY);
 	switch(Button&GEM_MB_NORMAL) {
 		case GEM_MB_ACTION:
 			if (Button&GEM_MB_DOUBLECLICK) {

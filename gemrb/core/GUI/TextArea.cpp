@@ -30,7 +30,6 @@
 #include "ImageMgr.h"
 #include "Interface.h"
 #include "Palette.h"
-#include "Variables.h"
 #include "Video.h"
 #include "GUI/EventMgr.h"
 #include "GUI/Window.h"
@@ -63,9 +62,8 @@ TextArea::TextArea(Color hitextcolor, Color initcolor, Color lowtextcolor)
 	tmp.g = 152;
 	tmp.b = 102;
 	lineselpal = core->CreatePalette( tmp, lowtextcolor );
-	InternalFlags = 1;
 	//Drop Capitals means initials on!
-	core->GetDictionary()->Lookup("Drop Capitals", InternalFlags);
+	InternalFlags = core->GetVariable("Drop Capitals", 1);
 	if (InternalFlags) {
 		InternalFlags = TA_INITIALS;
 	}
@@ -808,9 +806,9 @@ void TextArea::OnMouseUp(unsigned short x, unsigned short y, unsigned short /*Bu
 		}
 	}
 
-	if (VarName[0] != 0) {
-		core->GetDictionary()->SetAt( VarName, Value );
-	}
+	if (VarName[0] != 0)
+		core->SetVariable(VarName, Value);
+
 	RunEventHandler( TextAreaOnChange );
 }
 

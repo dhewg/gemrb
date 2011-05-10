@@ -31,7 +31,6 @@
 #include "GameData.h"
 #include "Interface.h"
 #include "Palette.h"
-#include "Variables.h"
 #include "Video.h"
 
 Button::Button()
@@ -469,10 +468,9 @@ void Button::OnMouseUp(unsigned short x, unsigned short y,
 		else
 			SetState( IE_GUI_BUTTON_UNPRESSED );
 		if (VarName[0] != 0) {
-			ieDword tmp = 0;
-			core->GetDictionary()->Lookup( VarName, tmp );
+			ieDword tmp = core->GetVariable(VarName, 0);
 			tmp ^= Value;
-			core->GetDictionary()->SetAt( VarName, tmp );
+			core->SetVariable(VarName, tmp);
 			Owner->RedrawControls( VarName, tmp );
 		}
 	} else {
@@ -482,7 +480,7 @@ void Button::OnMouseUp(unsigned short x, unsigned short y,
 			SetState( IE_GUI_BUTTON_SELECTED );
 		}
 		if (VarName[0] != 0) {
-			core->GetDictionary()->SetAt( VarName, Value );
+			core->SetVariable(VarName, Value);
 			Owner->RedrawControls( VarName, Value );
 		}
 	}
@@ -539,8 +537,8 @@ void Button::OnMouseOver(unsigned short x, unsigned short y)
 		//   remains valid even after window/control is moved
 		int dx = Owner->XPos + XPos + x - drag_start.x;
 		int dy = Owner->YPos + YPos + y - drag_start.y;
-		core->GetDictionary()->SetAt( "DragX", dx );
-		core->GetDictionary()->SetAt( "DragY", dy );
+		core->SetVariable("DragX", dx);
+		core->SetVariable("DragY", dy);
 		drag_start.x = (ieWord) (drag_start.x + dx);
 		drag_start.y = (ieWord) (drag_start.y + dy);
 		RunEventHandler( ButtonOnDrag );
@@ -553,9 +551,8 @@ void Button::OnMouseEnter(unsigned short /*x*/, unsigned short /*y*/)
 		return;
 	}
 
-	if (MouseEnterButton !=0 && VarName[0] != 0) {
-		core->GetDictionary()->SetAt( VarName, Value );
-	}
+	if (MouseEnterButton !=0 && VarName[0] != 0)
+		core->SetVariable(VarName, Value);
 
 	RunEventHandler( MouseEnterButton );
 }
@@ -566,9 +563,8 @@ void Button::OnMouseLeave(unsigned short /*x*/, unsigned short /*y*/)
 		return;
 	}
 
-	if (MouseLeaveButton !=0 && VarName[0] != 0) {
-		core->GetDictionary()->SetAt( VarName, Value );
-	}
+	if (MouseLeaveButton !=0 && VarName[0] != 0)
+		core->SetVariable(VarName, Value);
 
 	RunEventHandler( MouseLeaveButton );
 }

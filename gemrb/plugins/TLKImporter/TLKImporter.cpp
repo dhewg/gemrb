@@ -228,8 +228,7 @@ int TLKImporter::BuiltinToken(char* Token, char* dest)
 
 	//these are hardcoded, all engines are the same or don't use them
 	if (!strcmp( Token, "DAYANDMONTH")) {
-		ieDword dayandmonth=0;
-		core->GetDictionary()->Lookup("DAYANDMONTH",dayandmonth);
+		ieDword dayandmonth = core->GetVariable(Token, 0);
 		//preparing sub-tokens
 		core->GetCalendar()->GetMonthName((int) dayandmonth);
 		Decoded = GetString( 15981, 0 );
@@ -262,9 +261,8 @@ int TLKImporter::BuiltinToken(char* Token, char* dest)
 		goto exit_function;
 	}
 	if (!strcmp( Token, "MAGESCHOOL" )) {
-		ieDword row = 0; //default value is 0 (generalist)
 		//this is subject to change, the row number in magesch.2da
-		core->GetDictionary()->Lookup( "MAGESCHOOL", row ); 
+		ieDword row = core->GetVariable(Token, 0);
 		AutoTable tm("magesch");
 		if (tm) {
 			const char* value = tm->QueryField( row, 2 );

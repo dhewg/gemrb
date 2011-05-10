@@ -397,7 +397,7 @@ void DialogHandler::DialogChoose(unsigned int choose)
 				continue;
 			}
 		}
-		core->GetDictionary()->SetAt("DialogOption",x);
+		core->SetVariable("DialogOption", x);
 		core->GetGameControl()->SetDialogueFlags(DF_OPENCONTINUEWINDOW, BM_OR);
 		goto end_of_choose;
 	}
@@ -412,7 +412,7 @@ void DialogHandler::DialogChoose(unsigned int choose)
 		if (ds->transitions[x]->textStrRef == 0xffffffff) {
 			//dialogchoose should be set to x
 			//it isn't important which END option was chosen, as it ends
-			core->GetDictionary()->SetAt("DialogOption",x);
+			core->SetVariable("DialogOption", x);
 			core->GetGameControl()->SetDialogueFlags(DF_OPENENDWINDOW, BM_OR);
 		} else {
 			char *string = ( char * ) malloc( 40 );

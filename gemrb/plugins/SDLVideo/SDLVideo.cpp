@@ -152,7 +152,7 @@ bool SDLVideoDriver::SetFullscreenMode(bool set)
 		//readjust mouse to original position
 		MoveMouse(CursorPos.x, CursorPos.y);
 		//synchronise internal variable
-		core->GetDictionary()->SetAt( "Full Screen", (ieDword) fullscreen );
+		core->SetVariable("Full Screen", (ieDword)fullscreen);
 		return true;
 	}
 	return false;

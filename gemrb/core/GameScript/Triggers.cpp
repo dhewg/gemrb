@@ -3403,20 +3403,14 @@ int GameScript::FallenRanger(Scriptable* Sender, Trigger* /*parameters*/)
 
 int GameScript::NightmareModeOn(Scriptable* /*Sender*/, Trigger* /*parameters*/)
 {
-	ieDword diff;
-
-	core->GetDictionary()->Lookup("Nightmare Mode", diff);
-	if (diff) {
+	if (core->GetVariable("Nightmare Mode", 0))
 		return 1;
-	}
 	return 0;
 }
 
 int GameScript::Difficulty(Scriptable* /*Sender*/, Trigger* parameters)
 {
-	ieDword diff;
-
-	core->GetDictionary()->Lookup("Difficulty Level", diff);
+	ieDword diff = core->GetVariable("Difficulty Level", 0);
 	int mode = parameters->int1Parameter;
 	//hack for compatibility
 	if (!mode) {
@@ -3427,17 +3421,13 @@ int GameScript::Difficulty(Scriptable* /*Sender*/, Trigger* parameters)
 
 int GameScript::DifficultyGT(Scriptable* /*Sender*/, Trigger* parameters)
 {
-	ieDword diff;
-
-	core->GetDictionary()->Lookup("Difficulty Level", diff);
+	ieDword diff = core->GetVariable("Difficulty Level", 0);
 	return diff>(ieDword) parameters->int0Parameter;
 }
 
 int GameScript::DifficultyLT(Scriptable* /*Sender*/, Trigger* parameters)
 {
-	ieDword diff;
-
-	core->GetDictionary()->Lookup("Difficulty Level", diff);
+	ieDword diff = core->GetVariable("Difficulty Level", 0);
 	return diff<(ieDword) parameters->int0Parameter;
 }
 

@@ -377,11 +377,8 @@ void DisplayStringCore(Scriptable* Sender, int Strref, int flags)
 		Strref = tmp;
 
 		//display the verbal constants in the console
-		ieDword charactersubtitles = 0;
-		core->GetDictionary()->Lookup("Subtitles", charactersubtitles);
-		if (charactersubtitles) {
+		if (core->GetVariable("Subtitles", 0))
 			flags |= DS_CONSOLE;
-		}
 	}
 
 	if ((Strref != -1) && !sb.Sound[0]) {
@@ -1024,7 +1021,7 @@ void BeginDialog(Scriptable* Sender, Action* parameters, int Flags)
 			gc->SetDialogueFlags(DF_INTERACT, BM_OR);
 		}
 
-		core->GetDictionary()->SetAt("DialogChoose",(ieDword) -1);
+		core->SetVariable("DialogChoose", (ieDword)-1);
 		ret = gc->dialoghandler->InitDialog( scr, tar, Dialog);
 	}
 	else {

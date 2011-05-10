@@ -26,7 +26,6 @@
 
 #include "Audio.h"
 #include "Interface.h"
-#include "Variables.h"
 #include "Video.h"
 
 #include <cassert>
@@ -94,8 +93,7 @@ int MVEPlay::doPlay()
 
 	memset( g_palette, 0, 768 );
 
-	//ieDword volume;
-	//core->GetDictionary()->Lookup( "Volume Movie", volume );
+	//ieDword volume = core->GetVariable("Volume Movie", 100);
 	player.sound_init( core->GetAudioDrv()->CanPlay() );
 
 	int w,h;
@@ -159,8 +157,7 @@ void MVEPlay::setPalette(unsigned char* p, unsigned start, unsigned count)
 
 int MVEPlay::setAudioStream()
 {
-	ieDword volume ;
-	core->GetDictionary()->Lookup( "Volume Movie", volume) ;
+	ieDword volume = core->GetVariable("Volume Movie", 100);
 	int source = core->GetAudioDrv()->SetupNewStream(0, 0, 0, volume, false, false) ;
 	return source;
 }

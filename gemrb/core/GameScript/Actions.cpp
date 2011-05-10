@@ -2155,7 +2155,7 @@ void GameScript::NIDSpecial2(Scriptable* Sender, Action* /*parameters*/)
 		Sender->ReleaseCurrentAction();
 		return;
 	}
-	core->GetDictionary()->SetAt("Travel", (ieDword) direction);
+	core->SetVariable("Travel", (ieDword)direction);
 	core->GetGUIScriptEngine()->RunFunction( "GUIMA", "OpenWorldMapWindow" );
 	//sorry, i have absolutely no idea when i should do this :)
 	Sender->ReleaseCurrentAction();
@@ -4791,9 +4791,9 @@ void GameScript::ExpansionEndCredits(Scriptable* /*Sender*/, Action* /*parameter
 void GameScript::QuitGame(Scriptable* Sender, Action* parameters)
 {
 	ClearAllActions(Sender, parameters);
-	core->GetDictionary()->SetAt("QuitGame1", (ieDword) parameters->int0Parameter);
-	core->GetDictionary()->SetAt("QuitGame2", (ieDword) parameters->int1Parameter);
-	core->GetDictionary()->SetAt("QuitGame3", (ieDword) parameters->int2Parameter);
+	core->SetVariable("QuitGame1", (ieDword)parameters->int0Parameter);
+	core->SetVariable("QuitGame2", (ieDword)parameters->int1Parameter);
+	core->SetVariable("QuitGame3", (ieDword)parameters->int2Parameter);
 	core->SetNextScript("QuitGame");
 }
 

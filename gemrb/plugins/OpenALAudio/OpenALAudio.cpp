@@ -335,7 +335,7 @@ Holder<SoundHandle> OpenALAudioDriver::Play(const char* ResRef, int XPos, int YP
 		0.0f, 0.0f, 0.0f
 	};
 
-	ieDword volume = 100;
+	ieDword volume;
 
 	if (flags & GEM_SND_SPEECH) {
 		//speech has a single channel, if a new speech started
@@ -360,7 +360,7 @@ Holder<SoundHandle> OpenALAudioDriver::Play(const char* ResRef, int XPos, int YP
 		speech.free = false;
 		print("speech.free: %d source:%d\n", speech.free,speech.Source);
 
-		core->GetDictionary()->Lookup( "Volume Voices", volume );
+		volume = core->GetVariable("Volume Voices", 100);
 		alSourcef( speech.Source, AL_GAIN, 0.01f * volume );
 		alSourcei( speech.Source, AL_SOURCE_RELATIVE, flags & GEM_SND_RELATIVE );
 		alSourcefv( speech.Source, AL_POSITION, SourcePos );
@@ -401,7 +401,7 @@ Holder<SoundHandle> OpenALAudioDriver::Play(const char* ResRef, int XPos, int YP
 	alSourcefv( Source, AL_VELOCITY, SourceVel );
 	alSourcei( Source, AL_LOOPING, (flags & GEM_SND_LOOPING ? 1 : 0) );
 	alSourcef( Source, AL_REFERENCE_DISTANCE, REFERENCE_DISTANCE );
-	core->GetDictionary()->Lookup( "Volume SFX", volume );
+	volume = core->GetVariable("Volume SFX", 100);
 	alSourcef( Source, AL_GAIN, 0.01f * volume );
 	alSourcei( Source, AL_SOURCE_RELATIVE, flags & GEM_SND_RELATIVE );
 	alSourcefv( Source, AL_POSITION, SourcePos );
@@ -437,14 +437,15 @@ void OpenALAudioDriver::UpdateVolume(unsigned int flags)
 
 	if (flags & GEM_SND_VOL_MUSIC) {
 		SDL_mutexP( musicMutex );
-		core->GetDictionary()->Lookup("Volume Music", volume);
-		if (alIsSource(MusicSource))
+		if (alIsSource(MusicSource)) {
+			volume = core->GetVariable("Volume Music", 100);
 			alSourcef(MusicSource, AL_GAIN, volume * 0.01f);
+		}
 		SDL_mutexV(musicMutex);
 	}
 
 	if (flags & GEM_SND_VOL_AMBIENTS) {
-		core->GetDictionary()->Lookup("Volume Ambients", volume);
+		volume = core->GetVariable("Volume Ambients", 100);
 		((AmbientMgrAL*) ambim)->UpdateVolume(volume);
 	}
 }
@@ -569,8 +570,7 @@ int OpenALAudioDriver::CreateStream(Holder<SoundMgr> newMusic)
 			0.0f, 0.0f, 0.0f
 		};
 
-		ieDword volume;
-		core->GetDictionary()->Lookup( "Volume Music", volume );
+		ieDword volume = core->GetVariable("Volume Music", 100);
 		alSourcef( MusicSource, AL_PITCH, 1.0f );
 		alSourcef( MusicSource, AL_GAIN, 0.01f * volume );
 		alSourcei( MusicSource, AL_SOURCE_RELATIVE, 1 );

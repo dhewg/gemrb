@@ -24,7 +24,6 @@
 #include "exports.h"
 
 #include "SymbolMgr.h"
-#include "Variables.h"
 #include "Scriptable/Actor.h"
 #include "System/DataStream.h"
 
